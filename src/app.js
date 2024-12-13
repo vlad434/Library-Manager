@@ -4,6 +4,8 @@ const bookRoutes = require("./routes/books");
 const userRoutes = require("./routes/users");
 const loanRoutes = require("./routes/loans");
 
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use("/books", bookRoutes);
 app.use("/users", userRoutes);
@@ -14,10 +16,6 @@ app.get("/", (req, res) => {
   res.send("Welcome to my server");
 });
 
-app.listen(3000, (error) => {
-  if (!error) {
-    console.log("Server is running on port 3000!");
-  } else {
-    console.log("An error occured: ", error);
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
