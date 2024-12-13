@@ -88,11 +88,14 @@ const deleteBookById = (req, res) => {
 
   db.query(query, [id], (err, results) => {
     if (err) {
+      console.error("Error while deleting book:", err);
       res.status(500).json({ error: "Failed to delete book" });
-    } else if (results.affectedRows === 0) {
-      res.status(404).json({ message: "Book not found" });
     } else {
-      res.status(200).json({ message: "Book deleted successfully" });
+      if (results.affectedRows === 0) {
+        res.status(404).json({ message: "Book not found" });
+      } else {
+        res.status(200).json({ message: "Book deleted successfully" });
+      }
     }
   });
 };
