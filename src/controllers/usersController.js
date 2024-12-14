@@ -11,6 +11,78 @@ const getAllUsers = (req, res) => {
   });
 };
 
+const getUserById = (req, res) => {
+  const { id } = req.params;
+  const query = "SELECT * FROM users WHERE id = ?";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to fetch user" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+};
+
+const addUser = (req, res) => {
+  const { first_name, last_name, email, phone } = req.body;
+  const query =
+    "INSERT INTO users (first_name, last_name, email, phone) VALUES (?, ?, ?, ?);";
+
+  db.query(query, [first_name, last_name, email, phone], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to add user!" });
+    } else {
+      res.status(200).json({
+        message: "User added successfully",
+        userId: results.insertId,
+      });
+    }
+  });
+};
+
+const updateUser = (req, res) => {
+  const { id } = req.params;
+  const { first_name, last_name, email, phone } = req.body;
+
+  const query =
+    "UPDATE users SET first_name = ?, last_name = ? , email = ? , phone = ? WHERE id = ?";
+
+  db.query(query, [first_name, last_name, email, phone, id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to update user!" });
+    } else if (results.affectedRows === 0) {
+      res.status(404).json({ message: "User not found" });
+    } else {
+      res.status(200).json({
+        message: "User updated successfully!",
+      });
+    }
+  });
+};
+
+const deleteUser = (req, res) => {
+  const { id } = req.params;
+
+  const query = "DELETE FROM users WHERE id = ?";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to delete user!" });
+    } else {
+      if (results.affectedRows === 0) {
+        res.status(404).json({ message: "User not found" });
+      } else {
+        res.status(200).json({ message: "User deleted successfully" });
+      }
+    }
+  });
+};
+
 module.exports = {
   getAllUsers,
+  getUserById,
+  addUser,
+  updateUser,
+  deleteUser,
 };
