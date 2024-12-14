@@ -45,18 +45,32 @@ const updateUser = (req, res) => {
   const { id } = req.params;
   const { first_name, last_name, email, phone } = req.body;
 
-  const query =
-    "UPDATE users SET first_name = ?, last_name = ? , email = ? , phone = ? WHERE id = ?";
-
-  db.query(query, [first_name, last_name, email, phone, id], (err, results) => {
+  const selectQuery = "SELECT * FROM users WHERE id = ?";
+  db.query(selectQuery, [id], (err, results) => {
     if (err) {
-      res.status(500).json({ error: "Failed to update user!" });
-    } else if (results.affectedRows === 0) {
+      res.status(500).json({ error: "Failed to fetch user!" });
+    } else if (results.length === 0) {
       res.status(404).json({ message: "User not found" });
     } else {
-      res.status(200).json({
-        message: "User updated successfully!",
-      });
+      const existingUser = results[0];
+      const updatedFirstName = first_name || existingUser.first_name;
+      const updatedLastName = last_name || existingUser.last_name;
+      const updatedEmail = email || existingUser.email;
+      const updatedPhone = phone || existingUser.phone;
+
+      const updateQuery =
+        "UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ? WHERE id = ?";
+      db.query(
+        updateQuery,
+        [updatedFirstName, updatedLastName, updatedEmail, updatedPhone, id],
+        (err, results) => {
+          if (err) {
+            res.status(500).json({ error: "Failed to update user!" });
+          } else {
+            res.status(200).json({ message: "User updated successfully!" });
+          }
+        }
+      );
     }
   });
 };
