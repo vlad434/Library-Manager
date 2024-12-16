@@ -117,10 +117,52 @@ const deleteLoan = (req, res) => {
   });
 };
 
+const searchLoans = (req, res) => {
+  const { user_id, book_id, loan_date } = req.query;
+
+  let query = "SELECT * FROM loans WHERE 1=1";
+  const params = [];
+
+  if (user_id) {
+    query += " AND user_id LIKE ?";
+    params.push(`%${user_id}%`);
+  }
+
+  if (book_id) {
+    query += " AND book_id LIKE ?";
+    params.push(`%${book_id}%`);
+  }
+
+  if (loan_date) {
+    if (loan_date.length === 4) {
+      query += " AND YEAR(loan_date) = ?";
+      params.push(loan_date);
+    } else if (loan_date.length === 7 && loan_date.includes("-")) {
+      const [month, year] = loan_date.split("-");
+      query += " AND MONTH(loan_date) = ? AND YEAR(loan_date) = ?";
+      params.push(month, year);
+    } else if (loan_date.length === 10 && loan_date.includes("-")) {
+      const [day, month, year] = loan_date.split("-");
+      query +=
+        " AND DAY(loan_date) = ? AND MONTH(loan_date) = ? AND YEAR(loan_date) = ?";
+      params.push(day, month, year);
+    }
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "No loans were found!" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+};
+
 module.exports = {
   getAllLoans,
   addLoan,
   getLoanById,
   updateLoan,
   deleteLoan,
+  searchLoans,
 };

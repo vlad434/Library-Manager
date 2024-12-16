@@ -131,10 +131,51 @@ const deleteBookById = (req, res) => {
   });
 };
 
+const searchBooks = (req, res) => {
+  const { title, author, genre, publisher, publication_year } = req.query;
+
+  let query = "SELECT * FROM books WHERE 1=1";
+  const params = [];
+
+  if (title) {
+    query += " AND title LIKE ?";
+    params.push(`%${title.trim().replace(/"/g, "")}%`);
+  }
+
+  if (author) {
+    query += " AND author LIKE ?";
+    params.push(`%${author.trim().replace(/"/g, "")}%`);
+  }
+
+  if (genre) {
+    query += " AND genre LIKE ?";
+    params.push(`%${genre.trim().replace(/"/g, "")}%`);
+  }
+
+  if (publisher) {
+    query += " AND publisher LIKE ?";
+    params.push(`%${publisher.trim().replace(/"/g, "")}%`);
+  }
+
+  if (publication_year) {
+    query += " AND publication_year LIKE ?";
+    params.push(`%${publication_year.trim().replace(/"/g, "")}%`);
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "No books were found!" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+};
+
 module.exports = {
   getAllBooks,
   addNewBook,
   getBookById,
   updateBookById,
   deleteBookById,
+  searchBooks,
 };
