@@ -29,7 +29,7 @@ const addNewBook = (req, res) => {
     [title, author, genre, publisher, publication_year, copies_available],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: "Failed to add book" });
+        res.status(500).json({ error: `Failed to add book: ${err}` });
       } else {
         res.status(201).json({
           message: "Book added successfully",
@@ -66,20 +66,51 @@ const updateBookById = (req, res) => {
     copies_available,
   } = req.body;
 
-  const query = `UPDATE books SET title = ?, author = ?, genre = ?, publisher = ?, publication_year = ?, copies_available = ? WHERE id = ?`;
-  db.query(
-    query,
-    [title, author, genre, publisher, publication_year, copies_available, id],
-    (err, results) => {
-      if (err) {
-        res.status(500).json({ error: "Failed to update book" });
-      } else if (results.affectedRows === 0) {
-        res.status(404).json({ message: "Book not found" });
-      } else {
-        res.status(200).json({ message: "Book updated successfully" });
-      }
+  const query = "SELECT * FROM books WHERE id = ?";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: `Failed to fetch book with id ${id}` });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: `Book with id ${id}, not found!` });
+    } else {
+      const existingBook = results[0];
+      const updatedTitle = title || existingBook.title;
+      const updatedAuthor = author || existingBook.author;
+      const updatedGenre = genre || existingBook.genre;
+      const updatedPublisher = publisher || existingBook.publisher;
+      const updatedPublicationYear =
+        publication_year || existingBook.publication_year;
+      const updatedCopiesAvailable =
+        copies_available || existingBook.copies_available;
+
+      const updatedQuery =
+        "UPDATE books SET title = ?, author = ?, genre = ?, publisher = ?, publication_year = ?, copies_available = ? WHERE id = ?";
+      db.query(
+        updatedQuery,
+        [
+          updatedTitle,
+          updatedAuthor,
+          updatedGenre,
+          updatedPublisher,
+          updatedPublicationYear,
+          updatedCopiesAvailable,
+          id,
+        ],
+        (err, result) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: `Failed to update book with id ${id}` });
+          } else {
+            res
+              .status(200)
+              .json({ message: `Book with id ${id}, updated successfully` });
+          }
+        }
+      );
     }
-  );
+  });
 };
 
 const deleteBookById = (req, res) => {
