@@ -8,5 +8,6 @@ router.post("/", loansController.addLoan);
 router.get("/:id", loansController.getLoanById);
 router.put("/:id", loansController.updateLoan);
 router.delete("/:id", loansController.deleteLoan);
+router.patch("/:id/return", loansController.returnLoan);
 
 module.exports = router;

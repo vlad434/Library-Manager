@@ -158,6 +158,49 @@ const searchLoans = (req, res) => {
   });
 };
 
+const returnLoan = (req, res) => {
+  const { id } = req.params;
+  const { return_date } = req.body;
+  const currentDate = return_date || new Date().toISOString().slice(0, 10);
+
+  const query = "SELECT * FROM loans WHERE id = ?";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to fetch loan details" });
+    } else if (results.length === 0) {
+      res.status(404).json({ message: "Loan not found" });
+    } else {
+      const loan = results[0];
+      if (loan.return_date !== null) {
+        res.status(400).json({ message: "Book has already been returned!" });
+      } else {
+        const updateLoanQuery = "UPDATE loans SET return_date = ? WHERE id = ?";
+        db.query(updateLoanQuery, [currentDate, id], (err) => {
+          if (err) {
+            res.status(500).json({ error: "Failed to update return date" });
+          } else {
+            const updateBookQuery =
+              "UPDATE books SET copies_available = copies_available + 1 WHERE id = ?";
+            db.query(updateBookQuery, [loan.book_id], (err) => {
+              if (err) {
+                res
+                  .status(500)
+                  .json({ error: "Failed to update book copies available" });
+              } else {
+                res.status(200).json({
+                  message: "Book returned successfully",
+                  return_date: currentDate,
+                });
+              }
+            });
+          }
+        });
+      }
+    }
+  });
+};
+
 module.exports = {
   getAllLoans,
   addLoan,
@@ -165,4 +208,5 @@ module.exports = {
   updateLoan,
   deleteLoan,
   searchLoans,
+  returnLoan,
 };
