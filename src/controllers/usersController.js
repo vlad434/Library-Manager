@@ -93,10 +93,24 @@ const deleteUser = (req, res) => {
   });
 };
 
+const mostActiveUser = (req, res) => {
+  const query =
+    "SELECT users.first_name, COUNT(loans.user_id) as times_was_active FROM users INNER JOIN loans ON users.id = loans.user_id GROUP BY users.first_name ORDER BY times_was_active DESC";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: "Failed to fetch stats", err });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
   addUser,
   updateUser,
   deleteUser,
+  mostActiveUser,
 };

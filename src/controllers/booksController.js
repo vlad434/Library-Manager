@@ -171,6 +171,20 @@ const searchBooks = (req, res) => {
   });
 };
 
+const mostBorrowedBooks = (req, res) => {
+  const query =
+    "SELECT books.title, COUNT(books.id) as most_borrowed_books FROM books INNER JOIN loans ON books.id = loans.book_id GROUP BY books.title ORDER BY most_borrowed_books DESC";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      res.status(500).send({ error: "Failed to fetch stats!" });
+    } else {
+      console.log(results);
+      res.status(200).send(results);
+    }
+  });
+};
+
 module.exports = {
   getAllBooks,
   addNewBook,
@@ -178,4 +192,5 @@ module.exports = {
   updateBookById,
   deleteBookById,
   searchBooks,
+  mostBorrowedBooks,
 };
