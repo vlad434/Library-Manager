@@ -1,4 +1,5 @@
 const db = require("../../db/db");
+const bcrypt = require("bcrypt");
 
 const getAllUsers = (req, res) => {
   const query = "SELECT * FROM users";
@@ -106,6 +107,48 @@ const mostActiveUser = (req, res) => {
   });
 };
 
+const registerUser = async (req, res) => {
+  const { first_name, last_name, email, password } = req.body;
+
+  const checkEmailQuery = "SELECT * FROM users WHERE email = ?";
+
+  db.query(checkEmailQuery, [email], async (err, results) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "Database error during email check", err });
+    }
+
+    if (results.length > 0) {
+      return res.status(400).json({ error: "Email already in use!" });
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 8);
+
+      const insertQuery =
+        "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
+
+      db.query(
+        insertQuery,
+        [first_name, last_name, email, hashedPassword],
+        (err) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({ error: "Error registering user!", err });
+          }
+          return res
+            .status(201)
+            .json({ message: "User registered successfully" });
+        }
+      );
+    } catch (error) {
+      return res.status(500).json({ error: "Error hashing password!", error });
+    }
+  });
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -113,4 +156,5 @@ module.exports = {
   updateUser,
   deleteUser,
   mostActiveUser,
+  registerUser,
 };
