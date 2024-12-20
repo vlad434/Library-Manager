@@ -1,5 +1,8 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
+
+//Routes
 const bookRoutes = require("./routes/books");
 const userRoutes = require("./routes/users");
 const loanRoutes = require("./routes/loans");
